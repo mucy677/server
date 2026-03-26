@@ -3,35 +3,137 @@ package com.tiles.server;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
 public class MyController {
+	
+	// Simple game state tracking
+	private int playerX = 5;
+	private int playerY = 5;
+	
+	// Map dimensions
+	private static final int MAP_WIDTH = 20;
+	private static final int MAP_HEIGHT = 20;
+	
+	// Hardcoded map data (same as frontend)
+	private static final String[][] MAP = {
+		{"g", "g", "g", "g", "g", "g", "g", "g", "g", ".", "W", "g", "t", "t", "g", "g", "t", "g", "g", "g"},
+		{"S", "S", "S", "S", "S", "S", "g", "g", "g", "g", "W", "g", "t", ";", "t", "t", "t", "g", "g", "g"},
+		{"S", "w", "w", "w", "w", "S", "g", "g", "g", "W", "W", "g", "t", "t", "t", "t", "t", "t", "g", "g"},
+		{"S", "w", "w", "w", "w", "S", "g", "g", "W", "W", "g", "g", "t", "t", "t", "t", "t", "g", "g", "g"},
+		{"S", "S", "S", "D", "S", "S", "g", "g", "W", "g", "g", "t", "t", "t", "g", "g", "g", "g", "g", "g"},
+		{"g", "g", ",", "_", "g", "g", "g", "W", "W", "W", "g", "t", "g", "g", "g", "g", "g", "g", "g", "g"},
+		{".", "g", "g", "_", "g", "g", "g", "W", "g", "W", ".", "g", "g", "g", "g", "g", "g", "g", "g", "g"},
+		{"_", "_", "_", "_", "g", "g", "W", "W", "g", "W", "W", "g", "g", "g", "g", "_", "_", "_", "_", "_"},
+		{"_", "g", "t", "t", "g", "W", "W", "W", "g", "g", "W", "g", "g", "g", "g", "_", "g", "g", "g", "g"},
+		{"_", "g", "g", "t", "g", "W", "W", "g", "g", "g", "W", "g", "g", "g", "B", "D", "B", "g", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "g", "g", "g", "g", "W", "W", "g", "g", "B", "f", "B", ".", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "t", "t", "g", "W", "W", "g", "g", "B", "B", "f", "B", "B", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "t", "g", "g", "W", ",", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "g", "g", "g", "W", "W", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
+		{"_", "_", "g", "g", "g", "g", "g", "g", "W", ".", "W", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
+		{"g", "_", "_", "g", "g", "g", "g", "W", "W", "g", "W", "g", "g", "B", "B", "B", "B", "B", "g", "g"},
+		{"g", "g", "_", "g", "g", "g", "g", "W", "g", "g", "W", "g", "g", "g", "g", "g", "g", "g", "g", "g"},
+		{"g", "g", "_", "g", "g", "g", "W", "W", "g", "g", "W", "W", "g", "g", ":", "g", "g", "g", "g", "g"},
+		{"g", "g", "g", "g", "g", "W", "W", "W", "g", "g", "W", "W", "g", "g", "g", "g", "t", "g", "g", "g"},
+		{"g", "g", "g", "g", "g", "g", "g", "g", "g", "g", "W", "g", "g", "g", "g", "g", "g", "g", "g", "g"}
+	};
 
     @PostMapping("/test")
     public ResponseEntity<RequestData> handleJsonRequest(@RequestBody RequestData requestData) {
-        // Access the data directly from the Java object
         System.out.println("Received name: " + requestData.getName());
         System.out.println("Received gold: " + requestData.getGold());
         System.out.println("Received silver: " + requestData.getSilver());
         System.out.println("Received bronze: " + requestData.getBronze());
-
-        // Return a response, e.g., an OK status
-        // return new ResponseEntity<>("Data received successfully", HttpStatus.OK);
         return new ResponseEntity<>(requestData, HttpStatus.OK);
     }
 
     @GetMapping("/info")
-    public String info() {
+    public Map<String, Object> info(
+    		@RequestParam(defaultValue = "5") int y,
+    		@RequestParam(defaultValue = "5") int x) {
         
-        System.out.println("placeholder");
-
-        return "{\"placeholder\":\"placholder\"}";
+        System.out.println("Info request: x=" + x + ", y=" + y);
         
-
+        // Define view window (11x11 centered on player)
+        int viewWidth = 11;
+        int viewHeight = 11;
+        int viewMiddleX = viewWidth / 2;
+        int viewMiddleY = viewHeight / 2;
+        
+        // Calculate window bounds
+        int top = y - viewMiddleY;
+        int left = x - viewMiddleX;
+        int bottom = top + viewHeight;
+        int right = left + viewWidth;
+        
+        // Extract map window
+        String[][] mapWindow = new String[viewHeight][viewWidth];
+        for (int row = 0; row < viewHeight; row++) {
+            for (int col = 0; col < viewWidth; col++) {
+                int mapY = top + row;
+                int mapX = left + col;
+                
+                // Check bounds
+                if (mapY < 0 || mapY >= MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH) {
+                    mapWindow[row][col] = " ";
+                } else {
+                    mapWindow[row][col] = MAP[mapY][mapX];
+                }
+            }
+        }
+        
+        // Build response
+        Map<String, Object> response = new HashMap<>();
+        response.put("x", playerX);
+        response.put("y", playerY);
+        response.put("top", top);
+        response.put("left", left);
+        response.put("bottom", bottom);
+        response.put("right", right);
+        response.put("info", mapWindow);
+        
+        return response;
+    }
+    
+    @GetMapping("/move")
+    public String move(
+    		@RequestParam(defaultValue = "0") int dy,
+    		@RequestParam(defaultValue = "0") int dx) {
+        
+        System.out.println("Move request: dy=" + dy + ", dx=" + dx);
+        
+        // Update player position (simple wrapping for x, clamping for y)
+        int newX = playerX + dx;
+        int newY = playerY + dy;
+        
+        // Wrap x coordinate
+        if (newX < 0) {
+            newX += MAP_WIDTH;
+        } else if (newX >= MAP_WIDTH) {
+            newX -= MAP_WIDTH;
+        }
+        
+        // Clamp y coordinate
+        if (newY < 0) {
+            newY = 0;
+        } else if (newY >= MAP_HEIGHT) {
+            newY = MAP_HEIGHT - 1;
+        }
+        
+        playerX = newX;
+        playerY = newY;
+        
+        System.out.println("Player position: x=" + playerX + ", y=" + playerY);
+        
+        return "ok";
     }
 }

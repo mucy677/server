@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tileserver-deployment
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: tileserver
+  template:
+    metadata:
+      labels:
+        app: tileserver
+    spec:
+      containers:
+        - name: tileserver
+          image: tileserver:latest
+          ports:
+            - containerPort: 8000
