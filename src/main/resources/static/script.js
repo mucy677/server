@@ -34,7 +34,7 @@ const animation_time = 100; // 100 milliseconds = 10 frames per second.
 var server_addr = "http://localhost:8000";
 
 // Location of asset files.
-const asset_path = "assets/64x64/";
+const asset_path = "/assets/64x64/";
 
 // Map data.
 var map_width = 20;
@@ -144,16 +144,27 @@ function is_blocking(terrain) {
 async function load_all_terrain_tiles() {
 	for (let t = 0; t < terrains.length; t++) {
 		tile = new Image();
-		tile.src = asset_path + terrains[t].filename;
-		await tile.decode();
-		terrains[t].tile = tile;
+		const filename = terrains[t].filename;
+		tile.src = asset_path + filename;
+		try {
+			await tile.decode();
+			terrains[t].tile = tile;
+			console.log('Loaded asset: ' + filename);
+		} catch (e) {
+			console.error('Failed to load asset: ' + filename + ' from ' + (asset_path + filename), e);
+		}
 	}
 }
 
 async function load_all_player_tiles() {
 	player_tile = new Image();
 	player_tile.src = asset_path + player1_filename;
-	await player_tile.decode();
+	try {
+		await player_tile.decode();
+		console.log('Loaded player asset: ' + player1_filename);
+	} catch (e) {
+		console.error('Failed to load player asset: ' + player1_filename + ' from ' + (asset_path + player1_filename), e);
+	}
 }
 
 function fix_x(x) {
@@ -463,8 +474,12 @@ var gameArea = {
 };
 
 async function startGame() {
+	console.log('Starting game...');
+	console.log('Asset path:', asset_path);
 	await load_all_terrain_tiles();
+	console.log('Terrain tiles loaded');
 	await load_all_player_tiles();
+	console.log('Player tiles loaded');
 	gameArea.start();
+	console.log('Game area started');
 }
-
