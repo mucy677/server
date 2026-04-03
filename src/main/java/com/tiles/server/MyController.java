@@ -10,8 +10,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import java.util.HashMap;
 import java.util.Map;
-import java.io.BufferedReader;
-import java.io.FileReader;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -55,6 +53,7 @@ public class MyController {
     //Create HashMap of account credentials
     HashMap<String, String> logins = accountDetails.getMap();
 
+    
     Sessions sessions = new Sessions();
     
     @PostMapping("/test")
@@ -74,14 +73,14 @@ public class MyController {
         if(loginData.getEncpswrd().equals(logins.get(loginData.getName()))) {
             System.out.println(loginData.getName() + " logged in");
 
-            //Generate single pair -- key = raw token, value = JSON formatted token
-            Map.Entry<String, String> token = loginData.generateToken();
+            //generate token
+            String token = loginData.generateToken();
 
-            //Add token as key to map tracking current sessions
-            sessions.addSession(token.getKey(), loginData.getName());
+            //Add token as key to HashMap tracking current sessions
+            sessions.addSession(token, loginData.getName());
 
             //Return response with JSON formatted token
-            return new ResponseEntity<>(token.getValue(), HttpStatus.OK);
+            return new ResponseEntity<>("{\"session\": " + "\"" + token + "\"}", HttpStatus.OK);
 
         } else if (!loginData.getEncpswrd().equals(logins.get(loginData.getName()))) {
             System.out.println("Invalid Credentials");
