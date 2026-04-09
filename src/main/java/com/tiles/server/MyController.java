@@ -109,7 +109,7 @@ public class MyController {
     }
 
     @GetMapping("/info")
-    public Map<String, Object> info(
+    public ResponseEntity<Map<String, Object>> info(
     		@RequestParam(defaultValue = "5") int y,
     		@RequestParam(defaultValue = "5") int x) {
         
@@ -153,7 +153,8 @@ public class MyController {
         response.put("right", right);
         response.put("info", mapWindow);
         
-        return response;
+        return new ResponseEntity<>(response, HttpStatus.OK);
+        
     }
     
     @GetMapping("/move")
