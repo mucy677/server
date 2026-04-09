@@ -115,6 +115,11 @@ public class MyController {
         
         System.out.println("Info request: x=" + x + ", y=" + y);
         
+        //Return status 204 and exit early, if received coordinates do not match current player location stored on server
+        if (x!=playerX||y!=playerY) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+        
         // Define view window (11x11 centered on player)
         int viewWidth = 11;
         int viewHeight = 11;
