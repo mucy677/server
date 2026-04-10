@@ -115,7 +115,7 @@ public class MyController {
     }
 
     @GetMapping("/info")
-    public ResponseEntity<Map<String, Object>> info(
+    public ResponseEntity<InfoResponse> info(
     		@RequestParam(defaultValue = "5") int y,
     		@RequestParam(defaultValue = "5") int x) {
         
@@ -155,15 +155,8 @@ public class MyController {
         }
         
         // Build response
-        Map<String, Object> response = new HashMap<>();
-        response.put("x", playerX);
-        response.put("y", playerY);
-        response.put("top", top);
-        response.put("left", left);
-        response.put("bottom", bottom);
-        response.put("right", right);
-        response.put("info", mapWindow);
-        
+        InfoResponse response = new InfoResponse(playerX, playerY, top, left, bottom, right, mapWindow);
+
         return new ResponseEntity<>(response, HttpStatus.OK);
         
     }
