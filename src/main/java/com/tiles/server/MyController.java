@@ -167,6 +167,11 @@ public class MyController {
     		@RequestParam(defaultValue = "0") int dx) {
         
         System.out.println("Move request: dy=" + dy + ", dx=" + dx);
+
+        //Validity checks
+        if((Math.abs(dy)+Math.abs(dx)) > 1) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
         
         // Update player position (simple wrapping for x, clamping for y)
         int newX = playerX + dx;
