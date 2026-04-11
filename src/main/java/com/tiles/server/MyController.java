@@ -168,14 +168,19 @@ public class MyController {
         
         System.out.println("Move request: dy=" + dy + ", dx=" + dx);
 
-        //Validity checks
+        //Check for valid request
         if((Math.abs(dy)+Math.abs(dx)) > 1) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         
-        // Update player position (simple wrapping for x, clamping for y)
-        int newX = playerX + dx;
-        int newY = playerY + dy;
+        //Record proposed new player position
+        int proposedNewX = playerX + dx;
+        int proposedNewY = playerY + dy;
+
+        //Check for going beyond map boundary
+        if (!((proposedNewX >= 0 && proposedNewX < MAP_WIDTH) && (proposedNewY >= 0 && proposedNewY < MAP_HEIGHT))) { 
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }  
         
         // Wrap x coordinate
         if (newX < 0) {
