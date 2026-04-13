@@ -7,9 +7,19 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.http.ResponseEntity;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+
+import java.io.IOException;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -22,30 +32,14 @@ public class MyController {
 	// Map dimensions
 	private static final int MAP_WIDTH = 20;
 	private static final int MAP_HEIGHT = 20;
-	
-	// Hardcoded map data (same as frontend)
-	private static final String[][] MAP = {
-		{"g", "g", "g", "g", "g", "g", "g", "g", "g", ".", "W", "g", "t", "t", "g", "g", "t", "g", "g", "g"},
-		{"S", "S", "S", "S", "S", "S", "g", "g", "g", "g", "W", "g", "t", ";", "t", "t", "t", "g", "g", "g"},
-		{"S", "w", "w", "w", "w", "S", "g", "g", "g", "W", "W", "g", "t", "t", "t", "t", "t", "t", "g", "g"},
-		{"S", "w", "w", "w", "w", "S", "g", "g", "W", "W", "g", "g", "t", "t", "t", "t", "t", "g", "g", "g"},
-		{"S", "S", "S", "D", "S", "S", "g", "g", "W", "g", "g", "t", "t", "t", "g", "g", "g", "g", "g", "g"},
-		{"g", "g", ",", "_", "g", "g", "g", "W", "W", "W", "g", "t", "g", "g", "g", "g", "g", "g", "g", "g"},
-		{".", "g", "g", "_", "g", "g", "g", "W", "g", "W", ".", "g", "g", "g", "g", "g", "g", "g", "g", "g"},
-		{"_", "_", "_", "_", "g", "g", "W", "W", "g", "W", "W", "g", "g", "g", "g", "_", "_", "_", "_", "_"},
-		{"_", "g", "t", "t", "g", "W", "W", "W", "g", "g", "W", "g", "g", "g", "g", "_", "g", "g", "g", "g"},
-		{"_", "g", "g", "t", "g", "W", "W", "g", "g", "g", "W", "g", "g", "g", "B", "D", "B", "g", "g", "g"},
-		{"_", "g", "g", "g", "g", "g", "g", "g", "g", "g", "W", "W", "g", "g", "B", "f", "B", ".", "g", "g"},
-		{"_", "g", "g", "g", "g", "g", "t", "t", "g", "W", "W", "g", "g", "B", "B", "f", "B", "B", "g", "g"},
-		{"_", "g", "g", "g", "g", "g", "t", "g", "g", "W", ",", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
-		{"_", "g", "g", "g", "g", "g", "g", "g", "g", "W", "W", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
-		{"_", "_", "g", "g", "g", "g", "g", "g", "W", ".", "W", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
-		{"g", "_", "_", "g", "g", "g", "g", "W", "W", "g", "W", "g", "g", "B", "B", "B", "B", "B", "g", "g"},
-		{"g", "g", "_", "g", "g", "g", "g", "W", "g", "g", "W", "g", "g", "g", "g", "g", "g", "g", "g", "g"},
-		{"g", "g", "_", "g", "g", "g", "W", "W", "g", "g", "W", "W", "g", "g", ":", "g", "g", "g", "g", "g"},
-		{"g", "g", "g", "g", "g", "W", "W", "W", "g", "g", "W", "W", "g", "g", "g", "g", "t", "g", "g", "g"},
-		{"g", "g", "g", "g", "g", "g", "g", "g", "g", "g", "W", "g", "g", "g", "g", "g", "g", "g", "g", "g"}
-	};
+    
+    //Map to be loaded from text file
+    private String[][] MAP = new String[MAP_HEIGHT][MAP_WIDTH];
+
+    // Record to store the terrain details (second + third columns from terrain text file)
+    private record tileInfo(String description, boolean blocking) {}
+
+    private Map<String, tileInfo> terrains;
     
     //loading credentials from file not working -- look into loading resources with Spring
     
@@ -53,13 +47,85 @@ public class MyController {
     //Create HashMap of account credentials
     HashMap<String, String> logins = accountDetails.getMap();
 
-    
     Sessions sessions = new Sessions();
+
+    public MyController() {
+
+        //Load Map
+        try{
+
+              MAP = Files.lines(getFilePath("Map.txt"))
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty()) // skip empty lines
+                    .map(line -> line.split(", "))  
+                    .filter(parts -> parts.length == MAP_WIDTH) //Skip lines missing entries.
+                    .map(parts -> Arrays.stream(parts)
+                                        .map(element -> element.substring(1,2))
+                                        .toArray(String[]::new))
+                    .toArray(String[][]::new);
+
+        } catch (IOException e) {
+
+            System.out.println("Unable to load map file!");
+            //e.printStackTrace();
+            System.exit(1);
+
+        }
+
+        System.out.println("Map File:");
+        Arrays.stream(MAP)
+      		.map(Arrays::toString)
+      		.forEach(System.out::println);
+
+        //Load terrain key
+        try{
+
+            terrains = Files.lines(getFilePath("Terrains.txt"))
+                    .map(String::trim)
+                    .filter(line -> !line.isEmpty()) // skip empty lines
+                    .map(line -> line.split("\\s*\\|\\s*"))  //split regex handles '|' delimeter with optional padding on either side.
+                    .filter(parts -> parts.length == 3) //Skip lines missing entries.
+                    .collect(Collectors.toMap(
+                            parts -> parts[0].substring(0,1), //single character key (as string)
+                            parts -> new tileInfo(
+                                    parts[1], //Tile description
+                                    parts[2].equalsIgnoreCase("blocking") //true if "blocking", otherwise false
+                            )
+                    ));
+
+        } catch (IOException e) {
+
+            System.out.println("Unable to load terrain legend file!");
+            //e.printStackTrace();
+            System.exit(2);
+            
+        }
+
+        System.out.println("Terrain key:");
+        terrains.forEach((k, v) ->
+                    System.out.println(k + " | " + v.description + " | " + v.blocking));
+
+    }
 
     //Position Setter (required for tests)
     public void setPosition(int newX, int newY) { 
         this.playerX = newX; 
         this.playerY = newY;
+    }
+
+    //Map Getter (required for tests)
+    public String[][] getMap() {
+        return this.MAP;
+    }
+
+    //Helper method to return path object from asset name, for streaming files
+    private Path getFilePath(String asset) throws IOException {
+
+        Resource resource = new ClassPathResource(asset);
+        File file = resource.getFile();
+        String absolutePath = file.getAbsolutePath();
+        return Paths.get(absolutePath);
+
     }
     
     @PostMapping("/test")
@@ -162,16 +228,34 @@ public class MyController {
     }
     
     @GetMapping("/move")
-    public String move(
+    public ResponseEntity<MoveResponse>  move(
     		@RequestParam(defaultValue = "0") int dy,
     		@RequestParam(defaultValue = "0") int dx) {
         
         System.out.println("Move request: dy=" + dy + ", dx=" + dx);
+
+        //Check for valid request
+        if((Math.abs(dy)+Math.abs(dx)) > 1) {
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
         
-        // Update player position (simple wrapping for x, clamping for y)
-        int newX = playerX + dx;
-        int newY = playerY + dy;
+        //Record proposed new player position
+        int proposedNewX = playerX + dx;
+        int proposedNewY = playerY + dy;
+
+        //Check for going beyond map boundary
+        if (!((proposedNewX >= 0 && proposedNewX < MAP_WIDTH) && (proposedNewY >= 0 && proposedNewY < MAP_HEIGHT))) { 
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }  
+
+        //Check for moving into blocking terrain
+        if(terrains.get(MAP[proposedNewY][proposedNewX]).blocking == true) {
+            System.out.println("Movement blocked by: " + terrains.get(MAP[proposedNewY][proposedNewX]).description);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
         
+        //Not sure if this wrapping/clamping logic is needed, but left just in case - DS
+        /* 
         // Wrap x coordinate
         if (newX < 0) {
             newX += MAP_WIDTH;
@@ -185,12 +269,18 @@ public class MyController {
         } else if (newY >= MAP_HEIGHT) {
             newY = MAP_HEIGHT - 1;
         }
+        */
+
+        //Move request is valid, update stored player location on server
+        playerX = proposedNewX;
+        playerY = proposedNewY;
         
-        playerX = newX;
-        playerY = newY;
+        System.out.println("New player position: x=" + playerX + ", y=" + playerY);
         
-        System.out.println("Player position: x=" + playerX + ", y=" + playerY);
-        
-        return "ok";
+        // Build response
+        MoveResponse response = new MoveResponse(playerX, playerY);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
     }
 }

@@ -24,6 +24,30 @@ class ServerApplicationTests {
 
 	private final ObjectMapper objectMapper = new ObjectMapper();
 
+	// Hardcoded map data (same as frontend)
+	private static final String[][] MAP = {
+		{"g", "g", "g", "g", "g", "g", "g", "g", "g", ".", "W", "g", "t", "t", "g", "g", "t", "g", "g", "g"},
+		{"S", "S", "S", "S", "S", "S", "g", "g", "g", "g", "W", "g", "t", ";", "t", "t", "t", "g", "g", "g"},
+		{"S", "w", "w", "w", "w", "S", "g", "g", "g", "W", "W", "g", "t", "t", "t", "t", "t", "t", "g", "g"},
+		{"S", "w", "w", "w", "w", "S", "g", "g", "W", "W", "g", "g", "t", "t", "t", "t", "t", "g", "g", "g"},
+		{"S", "S", "S", "D", "S", "S", "g", "g", "W", "g", "g", "t", "t", "t", "g", "g", "g", "g", "g", "g"},
+		{"g", "g", ",", "_", "g", "g", "g", "W", "W", "W", "g", "t", "g", "g", "g", "g", "g", "g", "g", "g"},
+		{".", "g", "g", "_", "g", "g", "g", "W", "g", "W", ".", "g", "g", "g", "g", "g", "g", "g", "g", "g"},
+		{"_", "_", "_", "_", "g", "g", "W", "W", "g", "W", "W", "g", "g", "g", "g", "_", "_", "_", "_", "_"},
+		{"_", "g", "t", "t", "g", "W", "W", "W", "g", "g", "W", "g", "g", "g", "g", "_", "g", "g", "g", "g"},
+		{"_", "g", "g", "t", "g", "W", "W", "g", "g", "g", "W", "g", "g", "g", "B", "D", "B", "g", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "g", "g", "g", "g", "W", "W", "g", "g", "B", "f", "B", ".", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "t", "t", "g", "W", "W", "g", "g", "B", "B", "f", "B", "B", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "t", "g", "g", "W", ",", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
+		{"_", "g", "g", "g", "g", "g", "g", "g", "g", "W", "W", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
+		{"_", "_", "g", "g", "g", "g", "g", "g", "W", ".", "W", "g", "g", "B", "f", "f", "f", "B", "g", "g"},
+		{"g", "_", "_", "g", "g", "g", "g", "W", "W", "g", "W", "g", "g", "B", "B", "B", "B", "B", "g", "g"},
+		{"g", "g", "_", "g", "g", "g", "g", "W", "g", "g", "W", "g", "g", "g", "g", "g", "g", "g", "g", "g"},
+		{"g", "g", "_", "g", "g", "g", "W", "W", "g", "g", "W", "W", "g", "g", ":", "g", "g", "g", "g", "g"},
+		{"g", "g", "g", "g", "g", "W", "W", "W", "g", "g", "W", "W", "g", "g", "g", "g", "t", "g", "g", "g"},
+		{"g", "g", "g", "g", "g", "g", "g", "g", "g", "g", "W", "g", "g", "g", "g", "g", "g", "g", "g", "g"}
+	};
+
 	private static final String[][] DefaultMapWindow = {
 		{"g", "g", "g", "g", "g", "g", "g", "g", "g", ".", "W"},
 		{"S", "S", "S", "S", "S", "S", "g", "g", "g", "g", "W"},
@@ -77,6 +101,14 @@ class ServerApplicationTests {
 
 	@Test
 	@Order(2)
+	void testMapLoad() throws Exception {
+		
+		assertArrayEquals(MAP, controller.getMap());
+		
+	}
+
+	@Test
+	@Order(3)
 	void infoReturnDefaultMapWindow() throws Exception {
     
     	MvcResult result = mockMvc.perform(get("/info")
@@ -103,7 +135,7 @@ class ServerApplicationTests {
 	}
 
 	@Test
-	@Order(3)
+	@Order(4)
 	void infoReturnMovedMapWindow() throws Exception {
 
 		controller.setPosition(5, 7);
@@ -132,7 +164,7 @@ class ServerApplicationTests {
 	}
 
 	@Test
-	@Order(3)
+	@Order(4)
 	void infoRequestInvalidCoordinate() throws Exception {
 
 		controller.setPosition(3, 3);
