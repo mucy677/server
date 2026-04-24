@@ -48,7 +48,7 @@ public class MyController {
     // //Create HashMap of account credentials
     // HashMap<String, String> logins = accountDetails.getMap();
 
-    @Autowired
+    //@Autowired - removed annotation, potential conflict with use of final variable in constructor - DS
     private final AccountDetails accountDetails;
     private final Sessions sessions = new Sessions();
 
