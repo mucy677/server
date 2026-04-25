@@ -35,7 +35,7 @@ public class AccountDetails {
         }
     }
     
-    HashMap<String, String> getMap() {
+    public HashMap<String, String> getMap() {
         //harcoded credentials for testing because file read won't work
         //this.map.put("john", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
         return map; //returns the map containing username and password pairs
