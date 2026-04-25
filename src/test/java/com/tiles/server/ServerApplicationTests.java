@@ -213,4 +213,27 @@ class ServerApplicationTests {
 
 	}
 
+	@Test
+	@Order(5)
+	void badLoginRequests() throws Exception {
+
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(""))
+        	.andExpect(status().isBadRequest());
+
+		//Failing
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content("{\"name\":\""+valid.getName()+"\"}"))
+        	.andExpect(status().isBadRequest());
+
+		//Failing
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content("{\"encpswrd\":\""+valid.getEncpswrd()+"\"}"))
+        	.andExpect(status().isBadRequest());
+
+	}
+
 }
