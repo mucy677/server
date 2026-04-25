@@ -82,6 +82,8 @@ class ServerApplicationTests {
 	};
 
 	private static final LoginData valid = new LoginData("john", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
+	private static final LoginData invalidPassword = new LoginData("john", "d9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf33");
+	private static final LoginData invalidUsername = new LoginData("jhn", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
 
 	@Autowired
     private MockMvc mockMvc;
@@ -197,19 +199,17 @@ class ServerApplicationTests {
 
 	@Test
 	@Order(5)
-	void validLogin() throws Exception {
+	void unauthorizedLogins() throws Exception {
 
-		MvcResult result = mockMvc.perform(post("/login")
+		mockMvc.perform(post("/login")
 			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
-			.andReturn();
+            .content(objectMapper.writeValueAsString(invalidUsername)))
+        	.andExpect(status().isUnauthorized());
 
-		System.out.println(result.getResponse().getContentAsString());
-		
-		String token = returnReceivedToken(result);
-		
-		assertEquals(controller.verifySession(token),valid.getName());
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(invalidPassword)))
+        	.andExpect(status().isUnauthorized());
 
 	}
 
@@ -217,6 +217,7 @@ class ServerApplicationTests {
 	@Order(5)
 	void badLoginRequests() throws Exception {
 
+		//Works
 		mockMvc.perform(post("/login")
 			.contentType(MediaType.APPLICATION_JSON)
             .content(""))
@@ -233,6 +234,24 @@ class ServerApplicationTests {
 			.contentType(MediaType.APPLICATION_JSON)
             .content("{\"encpswrd\":\""+valid.getEncpswrd()+"\"}"))
         	.andExpect(status().isBadRequest());
+
+	}
+
+	@Test
+	@Order(6)
+	void validLogin() throws Exception {
+
+		MvcResult result = mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(valid)))
+        	.andExpect(status().isOk())
+			.andReturn();
+
+		System.out.println(result.getResponse().getContentAsString());
+		
+		String token = returnReceivedToken(result);
+		
+		assertEquals(controller.verifySession(token),valid.getName());
 
 	}
 
