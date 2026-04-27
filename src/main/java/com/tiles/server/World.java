@@ -45,12 +45,12 @@ public class World {
 
     private void loadMap() {
             
-            //Old approach:
-            //Path mapPath = getFilePath("Map.txt");
+        //Old approach:
+        //Path mapPath = getFilePath("Map.txt");
 
-            //Austin's approach:
-            //InputStream is = resource.getInputStream();
-            //String map = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        //Austin's approach:
+        //InputStream is = resource.getInputStream();
+        //String map = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
         ClassPathResource resource = new ClassPathResource("Map.txt"); 
     
@@ -83,17 +83,20 @@ public class World {
 
     private void loadTerrainLegend() {
 
-        try {
+        //Old approach:
+        //Path terrainsPath = getFilePath("Terrains.txt");
+        //terrains = Files.lines(terrainsPath)
+            
+        //Austin's approach:
+        //ClassPathResource resource = new ClassPathResource("Terrains.txt"); 
+        //InputStream is = resource.getInputStream();
+        //String terrainString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-            //Path terrainsPath = getFilePath("Terrains.txt");
-            ClassPathResource resource = new ClassPathResource("Terrains.txt"); 
+        ClassPathResource resource = new ClassPathResource("Terrains.txt"); 
 
-            InputStream is = resource.getInputStream();
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
 
-            String terrainString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
-
-            //terrains = Files.lines(terrainsPath)
-            terrains = terrainString.lines()
+            terrains = reader.lines()
                 .map(String::trim)
                 .filter(line -> !line.isEmpty()) // skip empty lines
                 .map(line -> line.split("\\s*\\|\\s*"))  //split regex handles '|' delimeter with optional padding on either side.
@@ -108,7 +111,7 @@ public class World {
 
         } catch (IOException e) {
 
-            throw new RuntimeException("Unable to get file reference for terrain file!", e);
+            throw new RuntimeException("Unable to load terrain legend!", e);
 
         }
         
