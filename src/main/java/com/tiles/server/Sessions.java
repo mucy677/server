@@ -20,4 +20,9 @@ public class Sessions {
     public void list() {
         System.out.println(tokens);
     }
+
+    //Required for tests
+    public String getUserName(String token) {
+        return tokens.get(token);
+    }
 }
