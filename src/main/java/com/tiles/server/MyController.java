@@ -7,20 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.http.ResponseEntity;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
-
-import java.io.IOException;
-import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -31,16 +18,8 @@ public class MyController {
 	private int playerY = 5;
 	
 	// Map dimensions
-	private static final int MAP_WIDTH = 20;
-	private static final int MAP_HEIGHT = 20;
-    
-    //Map to be loaded from text file
-    private String[][] MAP = new String[MAP_HEIGHT][MAP_WIDTH];
-
-    // Record to store the terrain details (second + third columns from terrain text file)
-    private record tileInfo(String description, boolean blocking) {}
-
-    private Map<String, tileInfo> terrains;
+	//private static final int MAP_WIDTH = 20; - now held in World class - DS
+	//private static final int MAP_HEIGHT = 20; - now held in World class - DS
     
     //loading credentials from file not working -- look into loading resources with Spring
     
@@ -48,67 +27,17 @@ public class MyController {
     // //Create HashMap of account credentials
     // HashMap<String, String> logins = accountDetails.getMap();
 
-    @Autowired
+    //@Autowired - removed annotation, potential conflict with use of final variable in constructor - DS
+    
     private final AccountDetails accountDetails;
     private final Sessions sessions = new Sessions();
 
+    private final World world;
 
-    public MyController(AccountDetails accountDetails) {
+    public MyController(AccountDetails accountDetails, World world) {
+        
         this.accountDetails = accountDetails;
-
-        //Load Map
-        try{
-
-              MAP = Files.lines(getFilePath("Map.txt"))
-                    .map(String::trim)
-                    .filter(line -> !line.isEmpty()) // skip empty lines
-                    .map(line -> line.split(", "))  
-                    .filter(parts -> parts.length == MAP_WIDTH) //Skip lines missing entries.
-                    .map(parts -> Arrays.stream(parts)
-                                        .map(element -> element.substring(1,2))
-                                        .toArray(String[]::new))
-                    .toArray(String[][]::new);
-
-        } catch (IOException e) {
-
-            System.out.println("Unable to load map file!");
-            //e.printStackTrace();
-            System.exit(1);
-
-        }
-
-        System.out.println("Map File:");
-        Arrays.stream(MAP)
-      		.map(Arrays::toString)
-      		.forEach(System.out::println);
-
-        //Load terrain key
-        try{
-
-            terrains = Files.lines(getFilePath("Terrains.txt"))
-                    .map(String::trim)
-                    .filter(line -> !line.isEmpty()) // skip empty lines
-                    .map(line -> line.split("\\s*\\|\\s*"))  //split regex handles '|' delimeter with optional padding on either side.
-                    .filter(parts -> parts.length == 3) //Skip lines missing entries.
-                    .collect(Collectors.toMap(
-                            parts -> parts[0].substring(0,1), //single character key (as string)
-                            parts -> new tileInfo(
-                                    parts[1], //Tile description
-                                    parts[2].equalsIgnoreCase("blocking") //true if "blocking", otherwise false
-                            )
-                    ));
-
-        } catch (IOException e) {
-
-            System.out.println("Unable to load terrain legend file!");
-            //e.printStackTrace();
-            System.exit(2);
-            
-        }
-
-        System.out.println("Terrain key:");
-        terrains.forEach((k, v) ->
-                    System.out.println(k + " | " + v.description + " | " + v.blocking));
+        this.world = world;
 
     }
 
@@ -120,17 +49,12 @@ public class MyController {
 
     //Map Getter (required for tests)
     public String[][] getMap() {
-        return this.MAP;
+        return this.world.getMap();
     }
 
-    //Helper method to return path object from asset name, for streaming files
-    private Path getFilePath(String asset) throws IOException {
-
-        Resource resource = new ClassPathResource(asset);
-        File file = resource.getFile();
-        String absolutePath = file.getAbsolutePath();
-        return Paths.get(absolutePath);
-
+    //Session verification (required for tests)
+    public String verifySession(String token) {
+        return this.sessions.getUserName(token);
     }
     
     @PostMapping("/test")
@@ -217,10 +141,10 @@ public class MyController {
                 int mapX = left + col;
                 
                 // Check bounds
-                if (mapY < 0 || mapY >= MAP_HEIGHT || mapX < 0 || mapX >= MAP_WIDTH) {
+                if (mapY < 0 || mapY >= this.world.getHeight() || mapX < 0 || mapX >= this.world.getWidth()) {
                     mapWindow[row][col] = " ";
                 } else {
-                    mapWindow[row][col] = MAP[mapY][mapX];
+                    mapWindow[row][col] = this.world.getMap()[mapY][mapX]; //MAP[mapY][mapX] 
                 }
             }
         }
@@ -249,13 +173,13 @@ public class MyController {
         int proposedNewY = playerY + dy;
 
         //Check for going beyond map boundary
-        if (!((proposedNewX >= 0 && proposedNewX < MAP_WIDTH) && (proposedNewY >= 0 && proposedNewY < MAP_HEIGHT))) { 
+        if (!((proposedNewX >= 0 && proposedNewX < this.world.getWidth()) && (proposedNewY >= 0 && proposedNewY < this.world.getHeight()))) { 
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }  
 
         //Check for moving into blocking terrain
-        if(terrains.get(MAP[proposedNewY][proposedNewX]).blocking == true) {
-            System.out.println("Movement blocked by: " + terrains.get(MAP[proposedNewY][proposedNewX]).description);
+        if(this.world.isBlocking(proposedNewY,proposedNewX) == true) {
+            System.out.println("Movement blocked by: " + this.world.getTileDescription(proposedNewY, proposedNewX));
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         
