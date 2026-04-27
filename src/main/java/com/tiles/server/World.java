@@ -4,6 +4,8 @@ package com.tiles.server;
 //import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.BufferedReader;
 import java.io.File;
 import java.util.Arrays;
 //import java.util.HashMap;
@@ -42,19 +44,20 @@ public class World {
     }
 
     private void loadMap() {
-
-        try{
             
+            //Old approach:
             //Path mapPath = getFilePath("Map.txt");
-            
-            ClassPathResource resource = new ClassPathResource("Map.txt"); 
 
-            InputStream is = resource.getInputStream();
+            //Austin's approach:
+            //InputStream is = resource.getInputStream();
+            //String map = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
-            String map = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        ClassPathResource resource = new ClassPathResource("Map.txt"); 
+    
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
 
             //MAP = Files.lines(mapPath)
-            MAP = map.lines()
+            MAP = reader.lines()
                 .map(String::trim)
                 .filter(line -> !line.isEmpty()) // skip empty lines
                 .map(line -> line.split(", "))  
@@ -67,7 +70,7 @@ public class World {
 
         } catch (IOException e) {
 
-            throw new RuntimeException("Unable to get file reference for map file!", e);
+            throw new RuntimeException("Unable to load map file!", e);  
 
         }
 
