@@ -76,7 +76,7 @@ public class MyController {
         //Check for bad request
         
         if (StringUtils.isBlank(loginData.getName())) {
-            System.out.println("Bad name field - Bad Request");
+            System.out.println("Bad username field - Bad Request");
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         

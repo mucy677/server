@@ -84,6 +84,10 @@ class ServerApplicationTests {
 	private static final LoginData valid = new LoginData("john", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
 	private static final LoginData invalidPassword = new LoginData("john", "d9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf33");
 	private static final LoginData invalidUsername = new LoginData("jhn", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
+	private static final LoginData blankUsername = new LoginData("", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
+	private static final LoginData blankPassword = new LoginData("john", "");
+	private static final LoginData spaceUsername = new LoginData(" ", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
+	private static final LoginData spacePassword = new LoginData("john", " ");
 
 	@Autowired
     private MockMvc mockMvc;
@@ -217,24 +221,41 @@ class ServerApplicationTests {
 	@Order(5)
 	void badLoginRequests() throws Exception {
 
-		//Works
+		//Works by default exception handler
 		mockMvc.perform(post("/login")
 			.contentType(MediaType.APPLICATION_JSON)
             .content(""))
         	.andExpect(status().isBadRequest());
 
-		//Failing
 		mockMvc.perform(post("/login")
 			.contentType(MediaType.APPLICATION_JSON)
             .content("{\"name\":\""+valid.getName()+"\"}"))
         	.andExpect(status().isBadRequest());
 
-		//Failing
 		mockMvc.perform(post("/login")
 			.contentType(MediaType.APPLICATION_JSON)
             .content("{\"encpswrd\":\""+valid.getEncpswrd()+"\"}"))
         	.andExpect(status().isBadRequest());
 
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(blankUsername)))
+        	.andExpect(status().isBadRequest());
+
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(blankPassword)))
+        	.andExpect(status().isBadRequest());
+
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(spaceUsername)))
+        	.andExpect(status().isBadRequest());
+
+		mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(spacePassword)))
+        	.andExpect(status().isBadRequest());
 	}
 
 	@Test
