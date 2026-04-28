@@ -89,6 +89,7 @@ class ServerApplicationTests {
 	private static final LoginData spaceUsername = new LoginData(" ", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
 	private static final LoginData spacePassword = new LoginData("john", " ");
 
+	
 	@Autowired
     private MockMvc mockMvc;
 
@@ -273,6 +274,34 @@ class ServerApplicationTests {
 		String token = returnReceivedToken(result);
 		
 		assertEquals(controller.verifySession(token),valid.getName());
+
+	}
+
+	@Test
+	@Order(7)
+	void badLogout() throws Exception {
+
+		mockMvc.perform(get("/logout" )
+				.queryParam("session", "badtoken"))
+			.andExpect(status().isUnauthorized());
+		
+	}
+
+	@Test
+	@Order(8)
+	void goodLogout() throws Exception {
+
+		MvcResult result = mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(valid)))
+        	.andExpect(status().isOk())
+			.andReturn();
+
+		String token = returnReceivedToken(result);
+
+		mockMvc.perform(get("/logout" )
+				.queryParam("session", token))
+			.andExpect(status().isOk());
 
 	}
 
