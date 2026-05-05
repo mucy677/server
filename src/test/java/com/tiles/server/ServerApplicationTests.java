@@ -119,21 +119,17 @@ class ServerApplicationTests {
 
 	}
 
-	/*
-	private String testLogin (LoginData loginData)
+	//Helper method for tests to login to endpoints, use only after valid login has been tested
+	private String testLogin (LoginData loginData) throws Exception {
+
 		MvcResult result = mockMvc.perform(post("/login")
 			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
+            .content(objectMapper.writeValueAsString(loginData)))
 			.andReturn();
-
-		System.out.println(result.getResponse().getContentAsString());
 		
-		String token = returnReceivedToken(result);
+		return returnReceivedToken(result);
 		
-		assertEquals(controller.verifySession(token),valid.getName());
-
-	*/
+	}
 
 	@Test
 	@Order(1)
