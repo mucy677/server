@@ -134,127 +134,6 @@ class ServerApplicationTests {
 
 	@Test
 	@Order(3)
-	void infoReturnDefaultMapWindow() throws Exception {
-    
-		// First login to get a token
-		MvcResult loginResult = mockMvc.perform(post("/login")
-			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
-			.andReturn();
-		
-		String token = returnReceivedToken(loginResult);
-		
-    	MvcResult result = mockMvc.perform(get("/info")
-            .param("session", token)
-            .param("x", "5")
-            .param("y", "5"))
-        .andExpect(status().isOk())
-		.andExpect(jsonPath("$.x").value(5))
-        .andExpect(jsonPath("$.y").value(5))
-		.andExpect(jsonPath("$.top").value(0))
-		.andExpect(jsonPath("$.left").value(0))
-		.andExpect(jsonPath("$.bottom").value(10))
-		.andExpect(jsonPath("$.right").value(10))
-		.andReturn();
-		
-		String[][] receivedMapWindow = returnReceivedMapWindow(result);
-		
-		System.out.println("Received default map window:");
-		Arrays.stream(receivedMapWindow)
-      		.map(Arrays::toString)
-      		.forEach(System.out::println);
-		
-		assertArrayEquals(DefaultMapWindow, receivedMapWindow);
-
-	}
-
-	@Test
-	@Order(4)
-	void infoReturnMovedMapWindow() throws Exception {
-
-		// First login to get a token
-		MvcResult loginResult = mockMvc.perform(post("/login")
-			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
-			.andReturn();
-		
-		String token = returnReceivedToken(loginResult);
-		
-		controller.setPosition(5, 7);
-    
-    	MvcResult result = mockMvc.perform(get("/info")
-            .param("session", token)
-            .param("x", "5")
-            .param("y", "7"))
-        .andExpect(status().isOk())
-		.andExpect(jsonPath("$.x").value(5))
-        .andExpect(jsonPath("$.y").value(7))
-		.andExpect(jsonPath("$.top").value(2))
-		.andExpect(jsonPath("$.left").value(0))
-		.andExpect(jsonPath("$.bottom").value(12))
-		.andExpect(jsonPath("$.right").value(10))
-		.andReturn();
-		
-		String[][] receivedMapWindow = returnReceivedMapWindow(result);
-		
-		System.out.println("Received moved map window:");
-		Arrays.stream(receivedMapWindow)
-      		.map(Arrays::toString)
-      		.forEach(System.out::println);
-		
-		assertArrayEquals(MovedMapWindow, receivedMapWindow);
-
-	}
-
-	@Test
-	@Order(4)
-	void infoRequestInvalidCoordinate() throws Exception {
-
-		// First login to get a token
-		MvcResult loginResult = mockMvc.perform(post("/login")
-			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
-			.andReturn();
-		
-		String token = returnReceivedToken(loginResult);
-		
-		controller.setPosition(3, 3);
-    
-    	mockMvc.perform(get("/info")
-            .param("session", token)
-            .param("x", "6")
-            .param("y", "7"))
-        .andExpect(status().isNoContent());
-
-	}
-
-	@Test
-	@Order(7)
-	void infoRequestWithoutValidSession() throws Exception {
-    
-    	mockMvc.perform(get("/info")
-            .param("x", "5")
-            .param("y", "5"))
-        .andExpect(status().isUnauthorized());
-
-	}
-
-	@Test
-	@Order(8)
-	void moveRequestWithoutValidSession() throws Exception {
-    
-    	mockMvc.perform(get("/move")
-            .param("dx", "1")
-            .param("dy", "0"))
-        .andExpect(status().isUnauthorized());
-
-	}
-
-	@Test
-	@Order(5)
 	void unauthorizedLogins() throws Exception {
 
 		mockMvc.perform(post("/login")
@@ -270,7 +149,7 @@ class ServerApplicationTests {
 	}
 
 	@Test
-	@Order(5)
+	@Order(3)
 	void badLoginRequests() throws Exception {
 
 		//Works by default exception handler
@@ -311,7 +190,7 @@ class ServerApplicationTests {
 	}
 
 	@Test
-	@Order(6)
+	@Order(4)
 	void validLogin() throws Exception {
 
 		MvcResult result = mockMvc.perform(post("/login")
@@ -325,6 +204,127 @@ class ServerApplicationTests {
 		String token = returnReceivedToken(result);
 		
 		assertEquals(controller.verifySession(token),valid.getName());
+
+	}
+
+	@Test
+	@Order(5)
+	void infoReturnDefaultMapWindow() throws Exception {
+    
+		// First login to get a token
+		MvcResult loginResult = mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(valid)))
+        	.andExpect(status().isOk())
+			.andReturn();
+		
+		String token = returnReceivedToken(loginResult);
+		
+    	MvcResult result = mockMvc.perform(get("/info")
+            .param("session", token)
+            .param("x", "5")
+            .param("y", "5"))
+        .andExpect(status().isOk())
+		.andExpect(jsonPath("$.x").value(5))
+        .andExpect(jsonPath("$.y").value(5))
+		.andExpect(jsonPath("$.top").value(0))
+		.andExpect(jsonPath("$.left").value(0))
+		.andExpect(jsonPath("$.bottom").value(10))
+		.andExpect(jsonPath("$.right").value(10))
+		.andReturn();
+		
+		String[][] receivedMapWindow = returnReceivedMapWindow(result);
+		
+		System.out.println("Received default map window:");
+		Arrays.stream(receivedMapWindow)
+      		.map(Arrays::toString)
+      		.forEach(System.out::println);
+		
+		assertArrayEquals(DefaultMapWindow, receivedMapWindow);
+
+	}
+
+	@Test
+	@Order(6)
+	void infoReturnMovedMapWindow() throws Exception {
+
+		// First login to get a token
+		MvcResult loginResult = mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(valid)))
+        	.andExpect(status().isOk())
+			.andReturn();
+		
+		String token = returnReceivedToken(loginResult);
+		
+		controller.setPosition(5, 7);
+    
+    	MvcResult result = mockMvc.perform(get("/info")
+            .param("session", token)
+            .param("x", "5")
+            .param("y", "7"))
+        .andExpect(status().isOk())
+		.andExpect(jsonPath("$.x").value(5))
+        .andExpect(jsonPath("$.y").value(7))
+		.andExpect(jsonPath("$.top").value(2))
+		.andExpect(jsonPath("$.left").value(0))
+		.andExpect(jsonPath("$.bottom").value(12))
+		.andExpect(jsonPath("$.right").value(10))
+		.andReturn();
+		
+		String[][] receivedMapWindow = returnReceivedMapWindow(result);
+		
+		System.out.println("Received moved map window:");
+		Arrays.stream(receivedMapWindow)
+      		.map(Arrays::toString)
+      		.forEach(System.out::println);
+		
+		assertArrayEquals(MovedMapWindow, receivedMapWindow);
+
+	}
+
+	@Test
+	@Order(7)
+	void infoRequestInvalidCoordinate() throws Exception {
+
+		// First login to get a token
+		MvcResult loginResult = mockMvc.perform(post("/login")
+			.contentType(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(valid)))
+        	.andExpect(status().isOk())
+			.andReturn();
+		
+		String token = returnReceivedToken(loginResult);
+		
+		controller.setPosition(3, 3);
+    
+    	mockMvc.perform(get("/info")
+            .param("session", token)
+            .param("x", "6")
+            .param("y", "7"))
+        .andExpect(status().isNoContent());
+
+	}
+
+	@Test
+	@Order(8)
+	void infoRequestWithoutValidSession() throws Exception {
+    
+    	mockMvc.perform(get("/info")
+            .param("x", "5")
+            .param("y", "5"))
+        .andExpect(status().isUnauthorized());
+
+	}
+
+	@Test
+	@Order(8)
+	void moveRequestWithoutValidSession() throws Exception {
+    
+    	mockMvc.perform(get("/move")
+            .param("dx", "1")
+            .param("dy", "0"))
+        .andExpect(status().isUnauthorized());
 
 	}
 
