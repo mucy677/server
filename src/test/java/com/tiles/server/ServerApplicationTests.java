@@ -89,6 +89,8 @@ class ServerApplicationTests {
 	private static final LoginData spaceUsername = new LoginData(" ", "c9765b38a8ded4d7f4286cbab7c104e95208a911b189beaf3c88182376e6bf32");
 	private static final LoginData spacePassword = new LoginData("john", " ");
 
+	private static String testToken;
+
 	@Autowired
     private MockMvc mockMvc;
 
@@ -119,7 +121,7 @@ class ServerApplicationTests {
 
 	}
 
-	//Helper method for tests to login to endpoints, use only after valid login has been tested
+	//Helper method for tests to login to endpoints, use only after valid login has been tested first
 	private String testLogin (LoginData loginData) throws Exception {
 
 		MvcResult result = mockMvc.perform(post("/login")
@@ -217,23 +219,16 @@ class ServerApplicationTests {
 		
 		assertTrue(controller.sessionValid(token));
 
+		testToken = token;
+
 	}
 
 	@Test
 	@Order(5)
 	void infoReturnDefaultMapWindow() throws Exception {
-    
-		// First login to get a token
-		MvcResult loginResult = mockMvc.perform(post("/login")
-			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
-			.andReturn();
-		
-		String token = returnReceivedToken(loginResult);
 		
     	MvcResult result = mockMvc.perform(get("/info")
-            .param("session", token)
+            .param("session", testToken)
             .param("x", "5")
             .param("y", "5"))
         .andExpect(status().isOk())
@@ -259,20 +254,11 @@ class ServerApplicationTests {
 	@Test
 	@Order(6)
 	void infoReturnMovedMapWindow() throws Exception {
-
-		// First login to get a token
-		MvcResult loginResult = mockMvc.perform(post("/login")
-			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
-			.andReturn();
-		
-		String token = returnReceivedToken(loginResult);
 		
 		controller.setPosition(5, 7);
     
     	MvcResult result = mockMvc.perform(get("/info")
-            .param("session", token)
+            .param("session", testToken)
             .param("x", "5")
             .param("y", "7"))
         .andExpect(status().isOk())
@@ -298,20 +284,11 @@ class ServerApplicationTests {
 	@Test
 	@Order(7)
 	void infoRequestInvalidCoordinate() throws Exception {
-
-		// First login to get a token
-		MvcResult loginResult = mockMvc.perform(post("/login")
-			.contentType(MediaType.APPLICATION_JSON)
-            .content(objectMapper.writeValueAsString(valid)))
-        	.andExpect(status().isOk())
-			.andReturn();
-		
-		String token = returnReceivedToken(loginResult);
 		
 		controller.setPosition(3, 3);
     
     	mockMvc.perform(get("/info")
-            .param("session", token)
+            .param("session", testToken)
             .param("x", "6")
             .param("y", "7"))
         .andExpect(status().isNoContent());
