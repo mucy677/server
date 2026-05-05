@@ -300,6 +300,7 @@ class ServerApplicationTests {
 	void infoRequestWithoutValidSession() throws Exception {
     
     	mockMvc.perform(get("/info")
+		 	.param("session", "badtoken")
             .param("x", "5")
             .param("y", "5"))
         .andExpect(status().isUnauthorized());
@@ -311,6 +312,7 @@ class ServerApplicationTests {
 	void moveRequestWithoutValidSession() throws Exception {
     
     	mockMvc.perform(get("/move")
+			.param("session", "badtoken")
             .param("dx", "1")
             .param("dy", "0"))
         .andExpect(status().isUnauthorized());
