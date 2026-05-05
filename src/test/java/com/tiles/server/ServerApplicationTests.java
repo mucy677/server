@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -317,6 +318,28 @@ class ServerApplicationTests {
             .param("dy", "0"))
         .andExpect(status().isUnauthorized());
 
+	}
+
+	@Test
+	@Order(9)
+	void badLogout() throws Exception {
+
+		mockMvc.perform(get("/logout" )
+				.queryParam("session", "badtoken"))
+			.andExpect(status().isUnauthorized());
+		
+	}
+
+	@Test
+	@Order(10)
+	void goodLogout() throws Exception {
+
+		mockMvc.perform(get("/logout" )
+				.queryParam("session", testToken))
+			.andExpect(status().isOk());
+
+		assertFalse(controller.sessionValid(testToken));
+	
 	}
 
 }
