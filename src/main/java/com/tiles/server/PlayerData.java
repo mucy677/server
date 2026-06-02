@@ -11,6 +11,7 @@ public class PlayerData {
     private int yPos;
 
     private Boolean spawned;
+    private Boolean viewedNewEvent;
 
     private ArrayList<Item> inventory = new ArrayList<Item>();
     private static final int maxItems = 2;
@@ -62,6 +63,18 @@ public class PlayerData {
     public synchronized void setPos(int x, int y) {
         this.xPos = x;
         this.yPos = y;
+    }
+
+    public void setNewEvent() {
+        this.viewedNewEvent = true;
+    }
+
+    public void resetNewEvent() {
+        this.viewedNewEvent = false;
+    }
+
+    public boolean viewedNewEvent() {
+        return this.viewedNewEvent;
     }
 
     public boolean inventoryFull() {

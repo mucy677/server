@@ -218,6 +218,14 @@ public class MyController {
             GAME_REQUESTS.labels("/info", "204").inc();
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+
+        //Fast Info
+        if (!player.viewedNewEvent()) {
+
+            System.out.println(player.getUsername() + " --> " + "map view unchanged!");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        
+        }
         
         //draw new icon
         //drawing in /info seems to be the most responsive but its still not always perfect
