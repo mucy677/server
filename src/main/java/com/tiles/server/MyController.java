@@ -165,8 +165,8 @@ public class MyController {
             PlayerData player = sessions.getPlayer(session);
 
             System.out.println(player.getUsername() + " logged out");
-            sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
             world.eraseIcon(player.getY(), player.getX(), player.getIcon());
+                sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
 
             sessions.logOut(session);
             return new ResponseEntity<>(HttpStatus.OK);
@@ -277,6 +277,7 @@ public class MyController {
         
         //Reset viewed new event
         player.resetNewEvent();
+        System.out.println(player.getUsername() + " --> " + "reset new event!");
 
         // Build response
         InfoResponse response = new InfoResponse(playerX, playerY, top, left, bottom, right, mapWindow);
@@ -380,11 +381,12 @@ public class MyController {
         playerX = proposedNewX;
         playerY = proposedNewY;
 
-        sessions.markEventViewers(proposedNewY, proposedNewX, viewHeight, viewWidth, world.getHeight(),world.getWidth());
         player.setPos(proposedNewX, proposedNewY);
+            sessions.markEventViewers(proposedNewY, proposedNewX, viewHeight, viewWidth, world.getHeight(),world.getWidth());
 
-        sessions.markEventViewers(prevY, prevX, viewHeight, viewWidth, world.getHeight(),world.getWidth());
         world.eraseIcon(prevY, prevX, player.getIcon());
+            sessions.markEventViewers(prevY, prevX, viewHeight, viewWidth, world.getHeight(),world.getWidth());
+
         //world.drawIcon(playerY, playerX, player.getIcon());
         
         System.out.println("New player position: x=" + playerX + ", y=" + playerY);
@@ -446,8 +448,9 @@ public class MyController {
                 
                 if (player.hasItem(key)) {
 
-                    sessions.markEventViewers(player.getY() + dy, player.getX() + dx, viewHeight, viewWidth, world.getHeight(),world.getWidth());
                     world.lockDoor(player.getY() + dy, player.getX() + dx);
+                        sessions.markEventViewers(player.getY() + dy, player.getX() + dx, viewHeight, viewWidth, world.getHeight(),world.getWidth());
+
                     System.out.println(player.getUsername() + " has locked door.");
                     GAME_REQUESTS.labels("/use", "200").inc();
                     return new ResponseEntity<>(HttpStatus.OK);   
@@ -465,8 +468,8 @@ public class MyController {
                 
                 if (player.hasItem(key)) {
 
-                    sessions.markEventViewers(player.getY() + dy, player.getX() + dx, viewHeight, viewWidth, world.getHeight(),world.getWidth());
                     world.unlockDoor(player.getY() + dy, player.getX() + dx);
+                        sessions.markEventViewers(player.getY() + dy, player.getX() + dx, viewHeight, viewWidth, world.getHeight(),world.getWidth());
                     System.out.println(player.getUsername() + " has unlocked door.");
                     GAME_REQUESTS.labels("/use", "200").inc();
                     return new ResponseEntity<>(HttpStatus.OK);   
@@ -527,11 +530,11 @@ public class MyController {
         if (swapResult.isPresent()) {
 
             world.take(player.getY(),player.getX(), takenItem); //remove from map
+                sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
 
             Item droppedItem = swapResult.get();
             world.place(player.getY(),player.getX(), droppedItem); 
-            
-            sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
+                sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
 
             System.out.println("Successfully stored: " + takenItem.getDesc() + ", dropped: " + droppedItem.getDesc());
             GAME_REQUESTS.labels("/take", "200").inc();
@@ -549,7 +552,7 @@ public class MyController {
 
         player.add(takenItem);
         world.take(player.getY(),player.getX(), takenItem); //remove from map
-        sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
+            sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
 
         System.out.println("Successfully stored: " + takenItem.getDesc());
         GAME_REQUESTS.labels("/take", "200").inc();
@@ -593,8 +596,9 @@ public class MyController {
 
         //Can place item, free tile
         Item droppedItem = player.removeItem(); //safe to call, inventory known to be non-empty
-        sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
         world.place(player.getY(),player.getX(), droppedItem); 
+            sessions.markEventViewers(player.getY(), player.getX(), viewHeight, viewWidth, world.getHeight(),world.getWidth());
+
         System.out.println("Successfully placed: " + droppedItem.getDesc());
         GAME_REQUESTS.labels("/place", "200").inc();
         return new ResponseEntity<>(HttpStatus.OK);
