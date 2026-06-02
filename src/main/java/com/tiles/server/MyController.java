@@ -46,6 +46,10 @@ public class MyController {
     private final World world;
 
     private final Item key;
+
+    private static final int viewWidth = 11;
+    private static final int viewHeight = 11;
+
     private static final String ENDPOINT_MOVE = "/move";  //prometheus constants
     
     private static final Counter GAME_REQUESTS = Counter.build()
@@ -94,6 +98,51 @@ public class MyController {
     //Session verification (required for tests)
     public Boolean sessionValid(String token) {
         return this.sessions.isValid(token);
+    }
+
+    public void markPlayersThatViewedEvent(int eventY, int eventX) {
+
+        //Calculate event viewable radius
+        int xRange = (viewWidth-1) / 2;
+        int yRange = (viewHeight-1) / 2;
+
+        //Wrap X
+        
+        int minX = eventX - xRange;
+
+        if (minX<0) {
+            minX = minX + world.getWidth();
+        }
+
+        if(minX>(world.getWidth()-1)) {
+            minX = minX - world.getWidth();
+        }
+        
+        int maxX = eventX + xRange;
+
+        if (maxX<0) {
+            maxX = maxX + world.getWidth();
+        }
+
+        if(maxX>(world.getWidth()-1)) {
+            maxX = maxX - world.getWidth();
+        }
+
+        //Clamp Y
+        int minY = eventY - yRange;
+        
+        if (minY<0) {
+            minY = 0;
+        }
+
+        int maxY = eventY + yRange;
+        
+        if (maxY>(world.getHeight()-1)) {
+            maxY = world.getHeight()-1;
+        }
+
+        sessions.markEventViewers(minX, maxX, minY, maxY);
+
     }
     
     @PostMapping("/test")
@@ -221,8 +270,8 @@ public class MyController {
         world.drawIcon(playerY, playerX, player.getIcon());
         
         // Define view window (11x11 centered on player)
-        int viewWidth = 11;
-        int viewHeight = 11;
+        //int viewWidth = 11;
+        //int viewHeight = 11;
         int viewMiddleX = viewWidth / 2;
         int viewMiddleY = viewHeight / 2;
 
