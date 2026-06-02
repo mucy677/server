@@ -26,6 +26,8 @@ public class PlayerData {
         characterIcon = asciiSum(name) % 10;
 
         spawned = false;
+        viewedNewEvent = true;
+        
     }
 
     public String getUsername() {

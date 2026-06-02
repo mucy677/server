@@ -275,6 +275,9 @@ public class MyController {
             }
         }
         
+        //Reset viewed new event
+        player.resetNewEvent();
+
         // Build response
         InfoResponse response = new InfoResponse(playerX, playerY, top, left, bottom, right, mapWindow);
         GAME_REQUESTS.labels("/info", "200").inc();
