@@ -24,13 +24,17 @@ public class Sessions {
         System.out.println(tokens);
     }
 
+    private ArrayList<PlayerData> getCurrentPlayers() {
+
+        return tokens.values().stream()
+            .collect(Collectors.toCollection(ArrayList::new));
+
+    }
+
     //For debug purposes - D.S
     public Optional<String> getPlayerFromIcon (int lookupIcon) {
 
-        ArrayList<PlayerData> currentPlayers = new ArrayList<PlayerData>();
-
-        currentPlayers = tokens.values().stream()
-            .collect(Collectors.toCollection(ArrayList::new));
+        ArrayList<PlayerData> currentPlayers = getCurrentPlayers();
 
         for(PlayerData player : currentPlayers) {
 
@@ -57,6 +61,66 @@ public class Sessions {
 
     public PlayerData getPlayer(String token) {
         return tokens.get(token);
+    }
+
+    public void markEventViewers(int eventY, int eventX, int viewHeight, int viewWidth, int worldHeight, int worldWidth) {
+
+        //Calculate event viewable radius
+        int xRange = (viewWidth-1) / 2;
+        int yRange = (viewHeight-1) / 2;
+
+        //Wrap X
+        
+        int minX = eventX - xRange;
+
+        if (minX<0) {
+            minX = minX + worldWidth;
+        }
+
+        if(minX>(worldWidth-1)) {
+            minX = minX - worldWidth;
+        }
+        
+        int maxX = eventX + xRange;
+
+        if (maxX<0) {
+            maxX = maxX + worldWidth;
+        }
+
+        if(maxX>(worldWidth-1)) {
+            maxX = maxX - worldWidth;
+        }
+
+        //Clamp Y
+        int minY = eventY - yRange;
+        
+        if (minY<0) {
+            minY = 0;
+        }
+
+        int maxY = eventY + yRange;
+        
+        if (maxY>(worldHeight-1)) {
+            maxY = worldHeight-1;
+        }
+
+        ArrayList<PlayerData> currentPlayers = getCurrentPlayers();
+
+        for(PlayerData player : currentPlayers) {
+
+            if (player.getY() >= minY && player.getX() <= maxY) {
+
+                if (player.getX() >= minX && player.getX() <= maxX) {
+
+                    player.setNewEvent();
+
+                }
+                
+            }
+
+        }
+
+
     }
 
 }

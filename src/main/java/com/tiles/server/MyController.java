@@ -100,51 +100,6 @@ public class MyController {
         return this.sessions.isValid(token);
     }
 
-    public void markPlayersThatViewedEvent(int eventY, int eventX) {
-
-        //Calculate event viewable radius
-        int xRange = (viewWidth-1) / 2;
-        int yRange = (viewHeight-1) / 2;
-
-        //Wrap X
-        
-        int minX = eventX - xRange;
-
-        if (minX<0) {
-            minX = minX + world.getWidth();
-        }
-
-        if(minX>(world.getWidth()-1)) {
-            minX = minX - world.getWidth();
-        }
-        
-        int maxX = eventX + xRange;
-
-        if (maxX<0) {
-            maxX = maxX + world.getWidth();
-        }
-
-        if(maxX>(world.getWidth()-1)) {
-            maxX = maxX - world.getWidth();
-        }
-
-        //Clamp Y
-        int minY = eventY - yRange;
-        
-        if (minY<0) {
-            minY = 0;
-        }
-
-        int maxY = eventY + yRange;
-        
-        if (maxY>(world.getHeight()-1)) {
-            maxY = world.getHeight()-1;
-        }
-
-        sessions.markEventViewers(minX, maxX, minY, maxY);
-
-    }
-    
     @PostMapping("/test")
     public ResponseEntity<RequestData> handleJsonRequest(@RequestBody RequestData requestData) {
         System.out.println("Received name: " + requestData.getName());
@@ -153,7 +108,6 @@ public class MyController {
         System.out.println("Received bronze: " + requestData.getBronze());
         return new ResponseEntity<>(requestData, HttpStatus.OK);
     }
-
 
     @PostMapping("/login")
     public ResponseEntity<String> handleJsonRequest(@RequestBody LoginData loginData) { 
