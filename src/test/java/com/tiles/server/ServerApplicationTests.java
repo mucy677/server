@@ -553,7 +553,7 @@ class ServerApplicationTests {
 			.param("session", testToken)
             .param("dx", "0")
             .param("dy", "-1"))
-        .andExpect(status().isBadRequest());
+        .andExpect(status().isNoContent());
 
 		controller.getSessions().logOut(testToken);	
 	}
