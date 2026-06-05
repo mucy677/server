@@ -523,26 +523,28 @@ class ServerApplicationTests {
 		controller.getSessions().logOut(testToken);	
 	}
 
-	// @Test
-	// @Order(11)
-	// void useRequestWithKey() throws Exception {
+	@Test
+	@Order(12)
+	void useRequestWithKey() throws Exception {
 
-	// 	controller.getSessions().addSession(testToken, "test");
-	// 	PlayerData player = controller.getSessions().getPlayer(testToken);
-	// 	player.setPos(3, 5);
-	// 	player.add(new Item("k", "key", "artifact", 5, 5));
+		controller.getSessions().addSession(testToken, "test");
+		PlayerData player = controller.getSessions().getPlayer(testToken);
+		player.setPos(3, 5);
+		player.add(new Item("k", "key", "artifact", 0, 0));
 
-	// 	mockMvc.perform(get("/use")
-	// 		.param("session", testToken)
-    //         .param("dx", "0")
-    //         .param("dy", "-1"))
-    //     .andExpect(status().isOk());
+		mockMvc.perform(get("/use")
+			.param("session", testToken)
+            .param("dx", "0")
+            .param("dy", "-1"))
+        .andExpect(status().isOk());
 
-	// 	controller.getSessions().logOut(testToken);	
-	// }
+		player.resetInventory();
+		controller.getSessions().logOut(testToken);	
+		
+	}
 
 	@Test
-	@Order(11)
+	@Order(12)
 	void useRequestInvalidLocation() throws Exception {
 
 		controller.getSessions().addSession(testToken, "test");
@@ -559,7 +561,7 @@ class ServerApplicationTests {
 	}
 
 	@Test
-	@Order(11)
+	@Order(13)
 	void badLogout() throws Exception {
 
 		mockMvc.perform(get("/logout" )
@@ -569,7 +571,7 @@ class ServerApplicationTests {
 	}
 
 	@Test
-	@Order(12)
+	@Order(13)
 	void goodLogout() throws Exception {
 
 		String token = "logoutToken";
