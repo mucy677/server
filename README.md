@@ -2,9 +2,12 @@
 
 ## QuestShaper Server - Spring Boot + Frontend Game
 
-### QUICK START:
-  Local: ./mvnw clean package -DskipTests && java -jar target/server-0.0.1-SNAPSHOT.jar
-  Then open: http://localhost:8000
+### LOCAL OPERATION:
+  1. run "mvn clean package" in root directory - this will produce: target/server-0.0.1-SNAPSHOT.jar
+  2. run ./buildcontainer.sh  
+  
+This will build and run a production container locally, from the latest target.
+Container has been port forwarded to port 8000.
 
  #### IMPORTANT: Frontend files must be in src/main/resources/static/
   - index.html
@@ -18,7 +21,6 @@ For detailed setup instructions, see SETUP.md
   1. Build: ./mvnw clean package -DskipTests
   2. Docker: docker build -t tileserver:latest . && docker run -p 8000:80 tileserver:latest
   3. Kubernetes: kubectl apply -f nginx-deployment.yaml && kubectl apply -f nginx-service.yaml
-
 
 ## AWS Setup
 
