@@ -196,18 +196,18 @@ public class MyController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
+        //Desync/ghost player prevention - D.S.
+        //Check if any players are currently in movement across the map
+        //Lock map updates to all clients until graphical move operations completed
+        //Release only when new map state is settled
+
+        if(sessions.isAnyPlayerMoving()) {
+            System.out.println("Map update in progress, info request gated.");
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        }
+
         //Player specific location
         PlayerData player = sessions.getPlayer(session);
-
-        
-        //--Depecrecated bandaid fix for /info desync when relogging --
-        //--Replaced with position reset        
-        //Position seems to persist on client side after log out which can cause issues when having a default location for PlayerData objects
-        //This sets the player's location to wherever it is at login
-        //The other option is to reset the map window to the default on logout
-        // if ((player.getX() == 100) && (player.getY() == 100)){ // these could also be == null but would need Integer wrapping
-        //     player.setPos(x, y);
-        // }
 
         int playerX = player.getX();
         int playerY = player.getY();
@@ -218,7 +218,7 @@ public class MyController {
         if (!player.getSpawned()) {
             x = playerX;
             y = playerY;
-
+            world.drawIcon(playerY, playerX, player.getIcon()); //First draw on player spawn
             player.hasSpawned();
         }
         
@@ -230,7 +230,7 @@ public class MyController {
         
         //draw new icon
         //drawing in /info seems to be the most responsive but its still not always perfect
-        world.drawIcon(playerY, playerX, player.getIcon());
+        //world.drawIcon(playerY, playerX, player.getIcon()); - moved to Move and Spawn time D.S.
         
         // Define view window (11x11 centered on player)
         int viewWidth = 11;
@@ -355,33 +355,18 @@ public class MyController {
             System.out.println("Movement blocked by " + priorityTerrain.getDesc());
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
-        
-        //Not sure if this wrapping/clamping logic is needed, but left just in case - DS
-        /* 
-        // Wrap x coordinate
-        if (newX < 0) {
-            newX += MAP_WIDTH;
-        } else if (newX >= MAP_WIDTH) {
-            newX -= MAP_WIDTH;
-        }
-        
-        // Clamp y coordinate
-        if (newY < 0) {
-            newY = 0;
-        } else if (newY >= MAP_HEIGHT) {
-            newY = MAP_HEIGHT - 1;
-        }
-        */
-        
+         
         //Move request is valid, update stored player location on server
         playerX = proposedNewX;
         playerY = proposedNewY;
 
-        player.setPos(proposedNewX, proposedNewY);
+        player.setPos(playerX, playerY);
 
+        player.setMoving(); //Lock info map updates until move operation completed on map
         world.eraseIcon(prevY, prevX, player.getIcon());
-        //world.drawIcon(playerY, playerX, player.getIcon());
-        
+        world.drawIcon(playerY, playerX, player.getIcon());
+        player.setStationary(); //Release info map updates
+
         System.out.println("New player position: x=" + playerX + ", y=" + playerY);
         
         // Build response

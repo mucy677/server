@@ -24,13 +24,22 @@ public class Sessions {
         System.out.println(tokens);
     }
 
-    //For debug purposes - D.S
-    public Optional<String> getPlayerFromIcon (int lookupIcon) {
+    //Helper method to retrieve list of current players
+    public ArrayList<PlayerData> getCurrentPlayers() {
 
         ArrayList<PlayerData> currentPlayers = new ArrayList<PlayerData>();
 
         currentPlayers = tokens.values().stream()
             .collect(Collectors.toCollection(ArrayList::new));
+
+        return currentPlayers;
+
+    }
+
+    //For debug purposes - D.S
+    public Optional<String> getPlayerFromIcon (int lookupIcon) {
+
+        ArrayList<PlayerData> currentPlayers = this.getCurrentPlayers();
 
         for(PlayerData player : currentPlayers) {
 
@@ -43,13 +52,6 @@ public class Sessions {
         return Optional.empty();
 
     }
-
-    //Required for tests - DS: overkill, deprecated in favour of isValid
-    /* 
-    public String getUserName(String token) {
-        return tokens.get(token);
-    }
-    */
     
     public boolean isValid(String token) {
         return tokens.containsKey(token);
@@ -57,6 +59,22 @@ public class Sessions {
 
     public PlayerData getPlayer(String token) {
         return tokens.get(token);
+    }
+
+    public boolean isAnyPlayerMoving() {
+
+        ArrayList<PlayerData> currentPlayers = this.getCurrentPlayers();
+
+        for(PlayerData player : currentPlayers) {
+
+            if (player.isMoving()) {
+                return true;
+            }
+            
+        }
+
+        return false;
+
     }
 
 }
