@@ -30,14 +30,9 @@ public class World {
     //Map to be loaded from text file
     private String[][] MAP = new String[MAP_HEIGHT][MAP_WIDTH];
 
-    // Record to store the terrain details (second + third columns from terrain text file)
-    //public record tileInfo(String description, boolean blocking, boolean useable) {}
-
-    //public record itemSpawnPoint(int spawnY, int spawnX) {}
-
-    private Map<String, Terrain> terrains;
-    private ArrayList<Terrain> useableTerrains = new ArrayList<Terrain>();
-    private ArrayList<Item> items = new ArrayList<Item>();
+    private Map<String, Terrain> terrains; //terrains register
+    private ArrayList<Terrain> useableTerrains = new ArrayList<Terrain>(); //useable terrains list
+    private ArrayList<Item> items = new ArrayList<Item>(); //world items, eg key, axe
     
     public World() {
        
@@ -48,13 +43,6 @@ public class World {
     }
 
     private void loadMap() {
-            
-        //Old approach:
-        //Path mapPath = getFilePath("Map.txt");
-
-        //Austin's approach:
-        //InputStream is = resource.getInputStream();
-        //String map = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
         ClassPathResource resource = new ClassPathResource("Map.txt"); 
         Pattern pattern = Pattern.compile("'([^']*)'"); //Take contents between each: ' ' 
@@ -84,15 +72,6 @@ public class World {
     }
 
     private void loadTerrainLegend() {
-
-        //Old approach:
-        //Path terrainsPath = getFilePath("Terrains.txt");
-        //terrains = Files.lines(terrainsPath)
-            
-        //Austin's approach:
-        //ClassPathResource resource = new ClassPathResource("Terrains.txt"); 
-        //InputStream is = resource.getInputStream();
-        //String terrainString = new String(is.readAllBytes(), StandardCharsets.UTF_8);
 
         ClassPathResource resource = new ClassPathResource("Terrains.txt"); 
 
@@ -174,6 +153,7 @@ public class World {
 
     }
 
+    //On startup used to search the map for starting location of an Item
     private Optional<ItemSpawnPoint> getSpawn(String ID) {
 
         for (int y = 0; y < MAP_HEIGHT; y++) {
@@ -196,33 +176,24 @@ public class World {
         return Optional.empty();
 
     }
-
-    //Deprecated, method didnt work in prod container - DS
-    /* 
-    private Path getFilePath(String asset) throws IOException {
-
-        ClassPathResource resource = new ClassPathResource(asset);
-        File file = resource.getFile();
-        String absolutePath = file.getAbsolutePath();
-        return Paths.get(absolutePath);
-
-    }
-    */
     
     public synchronized String[][] getMap() {
         return this.MAP;
     }
 
+    // Returns string representing a particular map location
     public synchronized String getTile(int Y, int X) {
         return this.MAP[Y][X];
     }
 
+    //Adds a player's character to a particular map location
     public synchronized void drawIcon(int Y, int X, int icon){
         String tile = getTile(Y,X) + icon;
         this.MAP[Y][X] = tile;
     }
 
-     public synchronized void eraseIcon(int Y, int X, int icon){
+    //Removes a player's character from a particular map location
+    public synchronized void eraseIcon(int Y, int X, int icon){
         //replace instead of substring to not assume the player will always be the final char
         String tile = getTile(Y,X).replace(Integer.toString(icon), "");
         this.MAP[Y][X] = tile;
@@ -240,6 +211,7 @@ public class World {
         return MAP_HEIGHT;
     }
 
+    //Returns an item from the world's item list. 
     public Optional<Item> getItem(String ID) {
         
         for (Item item : this.items) {
@@ -256,6 +228,7 @@ public class World {
 
     }
 
+    //Checks if a player is at a particular map location
     public Optional<Integer> checkIfPlayerOnTile (int Y, int X) {
         
         String tile = this.MAP[Y][X];
@@ -271,6 +244,7 @@ public class World {
 
     }
     
+    //Returns terrain element at a given map location, that determines right of passage/blockage.
     public Terrain getTerrainOfPassagePriority(int Y, int X) {
 
         String tile = this.MAP[Y][X];
@@ -293,10 +267,6 @@ public class World {
         return this.terrains.get(tile.substring(0,1));
 
     }
-
-    //This is just to have something working with use
-    //It may be better to have a generic is use method with an isUsable helper
-    //would need to modify map data to account -- like blocking
     
     public void lockDoor(int Y, int X){
 
@@ -311,35 +281,8 @@ public class World {
         this.MAP[Y][X] = tile.replace("D", "d");
     
     }
-    
 
-    //Deprecated in favour of separate unlock/lock methods for granularity - D.S.
-    /* 
-    public void useDoor(int Y, int X){
-
-        String tile = this.MAP[Y][X];
-
-        if (tile.contains("D")) {
-            this.MAP[Y][X] = tile.replace("D", "d");
-        }
-        
-        if (tile.contains("d")) {
-            this.MAP[Y][X] = tile.replace("d", "D");
-        }
-
-    }
-    */
-
-    //Deprecated in favour of containsUsable - D.S.
-    /* 
-    public boolean isDoor(int Y, int X) {
-
-        String tile = this.MAP[Y][X];
-        return tile.contains("D") || tile.contains("d");
-
-    }
-    */
-
+    //Checks whether a map location contains a useable terrain feature, eg door.
     public Optional<Terrain> containsUsable(int Y, int X) {
 
         String tile = this.MAP[Y][X];
@@ -358,6 +301,7 @@ public class World {
 
     }
 
+    //Removes item from game map
     public void take(int Y, int X, Item item) {
         
         String tile = this.MAP[Y][X];
@@ -365,6 +309,7 @@ public class World {
 
     }
 
+    //Finds first available Item spawnpoint, to which an item can be returned from a player's inventory, on logout. 
     public Optional<ItemSpawnPoint> getFreeSpawnPoint() {
 
         for (Item item : this.items) {
@@ -383,6 +328,7 @@ public class World {
 
     }
 
+    //Checks whether map location contains an existing item
     public Optional<Item> containsItems(int Y, int X) {
 
         String tile = this.MAP[Y][X];
@@ -403,6 +349,7 @@ public class World {
 
     }
 
+    //Places an item onto game map
     public void place(int Y, int X, Item item) {
 
         String tile = this.MAP[Y][X];
@@ -424,34 +371,4 @@ public class World {
 
     }
 
-    /* - Deprecated, more trouble than it's worth - DS
-    public String getTileDescription(int Y, int X) {
-
-        return this.terrains.get(this.MAP[Y][X]).description;
-    
-    }
-    */
-
 }
-
-//Austins approach:
- /*
-        try {
-            ClassPathResource resource = new ClassPathResource("AccountDetails.txt"); //loads the file from the classpath
-            try (BufferedReader br = new BufferedReader(new InputStreamReader(resource.getInputStream()))) { //reads the file using BufferedReader
-                String line;
-                while ((line = br.readLine()) != null) {    //reads the file line by line until the end of the file is reached
-                    System.out.println("Account details:");
-                    System.out.println(line);
-                    String[] parts = line.split(":"); //splits the line into two parts using ":" as the delimiter, where parts[0] is the username and parts[1] is the password
-                    if (parts.length == 2) {
-                        map.put(parts[0].trim(), parts[1].trim());  //splits the line into username and password and stores in map
-                        System.out.println("Acc: " +parts[0]);
-                        System.out.println("PW: " + parts[1]);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error: " + e.getMessage());
-        }
-         */
