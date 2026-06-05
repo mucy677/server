@@ -69,6 +69,10 @@ check PromQL is working with ```sum(game_requests_total{endpoint="/info"})``` an
 
 head to x.x.x.x:3000 (x.x.x.x is EC2 public IP address)
 
+User: admin
+
+Password: changeme
+
 Add a new data source and use http://prometheus:9090
 
 Add a new dashboard and import Documents/dashboard-1780455946532.json that's in the documents folder in this repo.
