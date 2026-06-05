@@ -52,13 +52,6 @@ public class Sessions {
         return Optional.empty();
 
     }
-
-    //Required for tests - DS: overkill, deprecated in favour of isValid
-    /* 
-    public String getUserName(String token) {
-        return tokens.get(token);
-    }
-    */
     
     public boolean isValid(String token) {
         return tokens.containsKey(token);
