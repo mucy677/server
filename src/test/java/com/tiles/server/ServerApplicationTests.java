@@ -553,7 +553,7 @@ class ServerApplicationTests {
 			.param("session", testToken)
             .param("dx", "0")
             .param("dy", "-1"))
-        .andExpect(status().isNoContent());
+        .andExpect(status().isBadRequest());
 
 		controller.getSessions().logOut(testToken);	
 	}
@@ -572,14 +572,84 @@ class ServerApplicationTests {
 	@Order(12)
 	void goodLogout() throws Exception {
 
-		controller.getSessions().addSession(testToken, "test");
+		String token = "logoutToken";
+
+		controller.getSessions().addSession(token, "test");
 
 		mockMvc.perform(get("/logout" )
-				.queryParam("session", testToken))
+				.queryParam("session", token))
 			.andExpect(status().isOk());
 
-		assertFalse(controller.sessionValid(testToken));
+		assertFalse(controller.sessionValid(token));
 	
+	}
+
+
+	@Test
+	@Order(13)
+	void takeItem() throws Exception{
+
+		String token = "takeTestToken";
+		controller.getSessions().addSession(token, "test");
+
+		PlayerData player = controller.getSessions().getPlayer(token);
+		player.setPos(14, 0);
+		mockMvc.perform(get("/take").param("session", token)).andExpect(status().isOk());
+
+		assertTrue(player.hasAnyItems());
+		assertFalse(controller.getMap()[0][14].contains("k"));
+
+		player.resetInventory();
+		controller.getMap()[0][14] = "gk";
+
+		controller.getSessions().logOut(testToken);
+
+	}
+
+	@Test
+	@Order(14)
+	void failTakeItem() throws Exception{
+
+		String token = "failTakeTestToken";
+		controller.getSessions().addSession(token, "test");
+
+		PlayerData player = controller.getSessions().getPlayer(token);
+		player.setPos(5, 5);
+		mockMvc.perform(get("/take").param("session", token)).andExpect(status().isNoContent());
+
+		assertFalse(player.hasAnyItems());
+
+		controller.getSessions().logOut(testToken);
+	}
+
+
+	@Test
+	@Order(15)
+	void placeItem() throws Exception{
+		String token = "placeTestToken";
+		controller.getSessions().addSession(token, "test");
+
+		PlayerData player = controller.getSessions().getPlayer(token);
+		player.setPos(5, 5);
+		mockMvc.perform(get("/place").param("session", token)).andExpect(status().isNoContent());
+
+		controller.getSessions().logOut(token);
+	}
+
+	@Test
+	@Order(16)
+	void failPlaceItem() throws Exception{
+		String token = "failPlaceTestToken";
+		controller.getSessions().addSession(token, "test");
+
+		PlayerData player = controller.getSessions().getPlayer(token);
+		player.setPos(5, 5);
+		mockMvc.perform(get("/place").param("session", token)).andExpect(status().isNoContent());
+
+		assertTrue(player.inventoryEmpty());
+		assertFalse(controller.getMap()[5][5].contains("k"));
+
+		controller.getSessions().logOut(token);
 	}
 
 }
