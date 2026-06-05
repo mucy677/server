@@ -34,6 +34,7 @@ ED25519 Encryption
 
 Create security group for SSH traffic from 0.0.0.0/0
 
+
 #### Security Groups inbound rules:
 
 
@@ -45,6 +46,13 @@ Create security group for SSH traffic from 0.0.0.0/0
 | Prometheus | TCP | 9090 | Custom | 0.0.0.0/0 |
 | Grafana | TCP | 3000 | Custom | 0.0.0.0/0 |
 
+
+#### Setup Github secrets for the following:
+
+DOCKERHUB_TOKEN : DockerHub access Token
+DOCKERHUB_USERNAME : Dockerhub Username
+EC2_HOST : Elasitc IP from AWS EC2 Server
+EC2_SSH_PRIVATE_KEY : Contents of the .pem file from the AWS E
 
 ## Dashboard setup
 
