@@ -587,8 +587,8 @@ class ServerApplicationTests {
 
 	@Test
 	@Order(13)
-	void takeItem() throws Exception{
-
+	void takeItem() throws Exception{ //verifies a player takes an item when standing on a tile with an item. 0, 14 has the key
+									  //player set to 0, 14 before /take is used. returns .isOk to confirm which is 200. 
 		String token = "takeTestToken";
 		controller.getSessions().addSession(token, "test");
 
@@ -608,8 +608,8 @@ class ServerApplicationTests {
 
 	@Test
 	@Order(14)
-	void failTakeItem() throws Exception{
-
+	void failTakeItem() throws Exception{ //verifies a player can't take an item if nothing is there. User is set to 5, 5 where no item is present
+										  // then returns isNoContent which is 204
 		String token = "failTakeTestToken";
 		controller.getSessions().addSession(token, "test");
 
@@ -625,20 +625,31 @@ class ServerApplicationTests {
 
 	@Test
 	@Order(15)
-	void placeItem() throws Exception{
+	void placeItem() throws Exception{    //move player to 0, 14 to pick up a key, move to a known empty place, place key and test /place worked.
 		String token = "placeTestToken";
 		controller.getSessions().addSession(token, "test");
 
 		PlayerData player = controller.getSessions().getPlayer(token);
-		player.setPos(5, 5);
-		mockMvc.perform(get("/place").param("session", token)).andExpect(status().isNoContent());
+
+		player.setPos(14, 0);  //place player onto key
+		mockMvc.perform(get("/take").param("session", token)).andExpect(status().isOk());   //pickup key
+
+		
+		player.setPos(5, 5);  //move player to empty space
+		mockMvc.perform(get("/place").param("session", token)).andExpect(status().isOk()); //drop item
+
+		assertTrue(controller.getMap()[5][5].contains("k"));
+    	assertTrue(player.inventoryEmpty());
+
+		controller.getMap()[5][5] = controller.getMap()[5][5].replace("k", "");  //remove key from 5, 5
+    	controller.getMap()[0][14] = "gk"; //place key back at spawn point
 
 		controller.getSessions().logOut(token);
 	}
 
 	@Test
 	@Order(16)
-	void failPlaceItem() throws Exception{
+	void failPlaceItem() throws Exception{   //faild to place item with an empty inventory, retuning 204 - no item
 		String token = "failPlaceTestToken";
 		controller.getSessions().addSession(token, "test");
 
