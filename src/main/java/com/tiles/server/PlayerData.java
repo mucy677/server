@@ -11,6 +11,7 @@ public class PlayerData {
     private int yPos;
 
     private Boolean spawned;
+    private Boolean isMoving;
 
     private ArrayList<Item> inventory = new ArrayList<Item>();
     private static final int maxItems = 2;
@@ -25,6 +26,7 @@ public class PlayerData {
         characterIcon = asciiSum(name) % 10;
 
         spawned = false;
+        isMoving = false;
     }
 
     public String getUsername() {
@@ -49,6 +51,18 @@ public class PlayerData {
 
     public int getIcon() {
         return this.characterIcon;
+    }
+
+    public void setMoving() {
+        this.isMoving=true;
+    }
+
+    public void setStationary() {
+        this.isMoving=false;
+    }
+
+    public boolean isMoving() {
+        return this.isMoving;
     }
 
     private int asciiSum(String name) {
